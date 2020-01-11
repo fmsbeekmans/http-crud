@@ -1,6 +1,17 @@
 lazy val root = (project in file("."))
   .settings(projectMetaData)
   .settings(scalaSettings)
+
+lazy val core = (project in file("modules/http-crud-core"))
+  .settings(moduleName := "http-crud-core")
+  .settings(projectMetaData)
+  .settings(scalaSettings)
+
+lazy val `akka-http` = (project in file("modules/http-crud-akka"))
+  .settings(projectMetaData)
+  .settings(moduleName := "http-crud-akka")
+  .settings(scalaSettings)
+  .dependsOn(core)
   .withDependencies
 
 lazy val projectMetaData = Seq(
