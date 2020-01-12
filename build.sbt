@@ -12,7 +12,14 @@ lazy val `akka-http` = (project in file("modules/http-crud-akka"))
   .settings(moduleName := "http-crud-akka")
   .settings(scalaSettings)
   .dependsOn(core)
-  .withDependencies
+  .withAkkaDependencies
+
+lazy val slick = (project in file("modules/http-crud-slick"))
+  .settings(projectMetaData)
+  .settings(moduleName := "http-crud-slick")
+  .settings(scalaSettings)
+  .dependsOn(core)
+  .withSlickDependencies
 
 lazy val projectMetaData = Seq(
   name := "http-crud",

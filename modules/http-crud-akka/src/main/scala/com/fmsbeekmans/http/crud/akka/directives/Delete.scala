@@ -15,7 +15,7 @@ trait Delete {
   ](
       repository: Remove[Backend, K, V, F],
       key: K
-  ): Directive1[F[Option[V]]] = {
+  ): Directive1[F[Unit]] = {
     provide(key).flatMap { k =>
       provide(repository.remove(k))
     }

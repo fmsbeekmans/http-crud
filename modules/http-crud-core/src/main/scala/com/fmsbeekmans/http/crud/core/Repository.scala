@@ -1,28 +1,28 @@
 package com.fmsbeekmans.http.crud.core
 
-trait Repository[K, V, F[_]]
-    extends Get[K, V, F]
-    with Store[K, V, F]
-    with Set[K, V, F]
-    with Remove[K, V, F]
-    with Keys[K, V, F]
+trait Repository[Backend, K, V, F[_]]
+    extends Get[Backend, K, V, F]
+    with Store[Backend, K, V, F]
+    with Set[Backend, K, V, F]
+    with Remove[Backend, K, V, F]
+    with Keys[Backend, K, V, F]
 
-trait Get[K, V, F[_]] {
+trait Get[Backend, K, V, F[_]] {
   def get(key: K): F[Option[V]]
 }
 
-trait Store[K, V, F[_]] {
+trait Store[Backend, K, V, F[_]] {
   def store(value: V): F[K]
 }
 
-trait Set[K, V, F[_]] {
+trait Set[Backend, K, V, F[_]] {
   def set(key: K, value: V): F[Unit]
 }
 
-trait Remove[K, V, F[_]] {
-  def remove(key: K): F[Option[V]]
+trait Remove[Backend, K, V, F[_]] {
+  def remove(key: K): F[Unit]
 }
 
-trait Keys[K, V, F[_]] {
+trait Keys[Backend, K, V, F[_]] {
   def keys: F[Seq[K]]
 }
