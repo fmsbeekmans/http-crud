@@ -1,20 +1,19 @@
-package com.fmsbeekmans.http.crud.slick
+package com.fmsbeekmans.http.crud.repository.slick
 
 import com.fmsbeekmans.http.crud.core.Repository
 import slick.jdbc.JdbcProfile
-//import slick.jdbc.H2Profile.api._
 import slick.lifted.Rep
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class App[Driver <: JdbcProfile](val driver: Driver) {
-  def repository[V](
+case class DatabaseRepository[Driver <: JdbcProfile](val driver: Driver) {
+  def repository[V, Table <: driver.api.Table[V]](
       db: driver.api.Database,
-      table: driver.api.TableQuery[driver.api.Table[V]],
-      toId: driver.api.Table[V] => Rep[Option[Int]]
+      table: driver.api.TableQuery[Table],
+      toId: Table => Rep[Option[Int]]
   )(
       implicit ec: ExecutionContext
-  ) = {
+  ): Repository[driver.api.Database, Int, V, Future] = {
     import driver.api._
 
     new Repository[Database, Int, V, Future] {
@@ -50,7 +49,7 @@ class App[Driver <: JdbcProfile](val driver: Driver) {
 
       override def store(value: V): Future[Int] = {
         db.run(
-            (table returning table.map(toId)) += (value)
+            (table returning table.map(toId)) += value
           )
           .map {
             case Some(id) => id

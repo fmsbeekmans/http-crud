@@ -1,6 +1,5 @@
 package com.fmsbeekmans.http.crud.akka
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
@@ -19,7 +18,7 @@ import com.fmsbeekmans.http.crud.core.{Get, Keys, Remove, Set, Store}
 
 import scala.util.{Failure, Success}
 
-object Routes extends SprayJsonSupport {
+object Routes {
   def create[
       Backend,
       K: ToResponseMarshaller,
