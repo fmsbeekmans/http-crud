@@ -7,6 +7,7 @@ lazy val root = (project in file("."))
   )
   .settings(scalaSettings)
   .aggregate(`akka-http`, core, slick)
+  .settings(noReleaseSettings)
 
 lazy val core = (project in file("modules/http-crud-core"))
   .settings(
@@ -43,7 +44,9 @@ lazy val slick = (project in file("modules/http-crud-slick"))
 
 lazy val projectMetaData = Seq(
   name := "http-crud",
+  bintrayPackage := "http-crud",
   organization := "com.fmsbeekmans",
+  version := "0.1.0",
   developers := List(
     Developer(
       "fmsbeekmans",
@@ -109,4 +112,42 @@ lazy val scalaSettings = Seq(
     "-Ywarn-unused:privates", // Warn if a private member is unused.
     "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
   )
+)
+
+lazy val releaseSettings = {
+  import sbtrelease.ReleaseStateTransformations._
+  Seq(
+    releaseCrossBuild := false,
+    releaseTagComment := s"Release version ${(version in ThisBuild).value}",
+    releaseTagName := s"v${(version in ThisBuild).value}",
+    releaseCommitMessage := s"Release version ${(version in ThisBuild).value} [ci skip]",
+    releaseUseGlobalVersion := true,
+    publishArtifact in Test := false,
+    publishMavenStyle := true,
+    releaseCommitMessage := s"Setting version to ${(version in ThisBuild).value}  [ci skip]",
+    bintrayOrganization := None,
+    bintrayRepository := "maven",
+    bintrayOmitLicense := true,
+    bintrayVcsUrl := Some("git@github.com:fmsbeekmans/http-crud.git"),
+    releaseProcess := Seq(
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      runTest,
+      setReleaseVersion,
+      commitReleaseVersion,
+      tagRelease,
+      publishArtifacts,
+      setNextVersion,
+      commitNextVersion,
+      pushChanges
+    )
+  )
+}
+
+lazy val noReleaseSettings = Seq(
+  skip in publish := true,
+  skip in publishLocal := true,
+  publishArtifact := false,
+  releaseProcess := Seq()
 )
