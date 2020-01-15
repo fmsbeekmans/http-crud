@@ -1,7 +1,7 @@
 lazy val root = (project in file("."))
   .settings(projectMetaData)
   .settings(scalaSettings)
-  .dependsOn(`akka-http`, core, slick)
+  .aggregate(`akka-http`, core, slick)
 
 lazy val core = (project in file("modules/http-crud-core"))
   .settings(moduleName := "http-crud-core")
@@ -13,6 +13,7 @@ lazy val `akka-http` = (project in file("modules/http-crud-akka"))
   .settings(moduleName := "http-crud-akka")
   .settings(scalaSettings)
   .dependsOn(core)
+  .withTestDependencies
   .withAkkaDependencies
 
 lazy val slick = (project in file("modules/http-crud-slick"))
@@ -29,7 +30,7 @@ lazy val projectMetaData = Seq(
 )
 
 lazy val scalaSettings = Seq(
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.8",
   scalacOptions ++= Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",

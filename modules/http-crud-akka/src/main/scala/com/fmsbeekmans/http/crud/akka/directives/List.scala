@@ -13,8 +13,10 @@ trait List {
       V,
       F[_]
   ](
-      repository: Keys[Backend, K, V, F]
+      backend: Backend
+  )(
+      implicit RepositoryKeys: RepositoryKeys[Backend, K, V, F]
   ): Directive1[F[Seq[K]]] = {
-    provide(repository.keys)
+    provide(RepositoryKeys.keys(backend))
   }
 }

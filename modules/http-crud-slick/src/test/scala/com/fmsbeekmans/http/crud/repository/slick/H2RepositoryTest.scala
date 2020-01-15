@@ -9,7 +9,7 @@ import slick.jdbc.H2Profile
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class H2RouteTest
+class H2RepositoryTest
     extends AnyFreeSpec
     with Matchers
     with BeforeAndAfterAll
@@ -44,11 +44,11 @@ class H2RouteTest
   lazy val table = TableQuery[People]
 
   val repository = DatabaseRepository(H2Profile)
-    .repository[Person, People](database, table, _.id)
+    .repository[Person, People](table, _.id)
 
   "A DatabaseRepository" - {
     "can store an entry" in {
-      whenReady(repository.store(Person(None, "testValue"))) { id =>
+      whenReady(repository.store(database, Person(None, "testValue"))) { id =>
         id shouldBe 1
       }
 
@@ -56,7 +56,7 @@ class H2RouteTest
     }
 
     "can retrieve an entry" in {
-      whenReady(repository.get(1)) { result =>
+      whenReady(repository.get(database, 1)) { result =>
         result.value shouldBe Person(Some(1), "testValue")
       }
 
@@ -66,8 +66,8 @@ class H2RouteTest
     "can update an entry" in {
       whenReady {
         for {
-          _ <- repository.set(1, Person(Some(1), "Test Value"))
-          updated <- repository.get(1)
+          _ <- repository.set(database, 1, Person(Some(1), "Test Value"))
+          updated <- repository.get(database, 1)
         } yield updated
       } { result =>
         result.value shouldBe Person(Some(1), "Test Value")
@@ -79,8 +79,8 @@ class H2RouteTest
     "can list contained entries" in {
       whenReady {
         for {
-          _ <- repository.store(Person(None, "Extra Value"))
-          keys <- repository.keys
+          _ <- repository.store(database, Person(None, "Extra Value"))
+          keys <- repository.keys(database)
         } yield keys
       } { result =>
         result should contain(1)
@@ -93,8 +93,8 @@ class H2RouteTest
     "can remove an entry" in {
       whenReady {
         for {
-          _ <- repository.remove(1)
-          removed <- repository.get(1)
+          _ <- repository.remove(database, 1)
+          removed <- repository.get(database, 1)
         } yield removed
       } { _ shouldBe None }
 

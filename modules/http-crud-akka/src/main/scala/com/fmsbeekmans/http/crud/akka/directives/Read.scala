@@ -13,11 +13,13 @@ trait Read {
       V,
       F[_]
   ](
-      repository: Get[Backend, K, V, F],
+      backend: Backend,
       key: K
+  )(
+      implicit RepositoryGet: RepositoryGet[Backend, K, V, F],
   ): Directive1[F[Option[V]]] = {
     provide(key).flatMap { k =>
-      provide(repository.get(k))
+      provide(RepositoryGet.get(backend, k))
     }
   }
 }

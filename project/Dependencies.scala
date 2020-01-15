@@ -5,7 +5,7 @@ object Dependencies extends AutoPlugin {
 
   object versions {
     object akka {
-      val core = "2.5.26"
+      val core = "2.6.1"
       val http = "10.1.11"
     }
 
@@ -20,6 +20,8 @@ object Dependencies extends AutoPlugin {
     "com.typesafe.akka" %% "akka-actor" % versions.akka.core,
     "com.typesafe.akka" %% "akka-stream" % versions.akka.core,
     "com.typesafe.akka" %% "akka-stream-testkit" % versions.akka.core % "test",
+    "io.circe" %% "circe-generic" % "0.12.3" % "test",
+    "de.heikoseeberger" %% "akka-http-circe" % "1.30.0" % "test"
   )
 
   val slickDependencies = Seq(

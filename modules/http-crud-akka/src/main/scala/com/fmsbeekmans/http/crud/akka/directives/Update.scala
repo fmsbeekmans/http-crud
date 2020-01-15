@@ -13,13 +13,15 @@ trait Update {
       V,
       F[_]
   ](
-      repository: Set[Backend, K, V, F],
+      backend: Backend,
       key: K,
       value: V
-  ): Directive1[F[Unit]] = {
+  )(
+      implicit RepositorySet: RepositorySet[Backend, K, V, F]
+  ): Directive1[F[Boolean]] = {
     provide(key).flatMap { k =>
       provide(value).flatMap { v =>
-        provide(repository.set(k, v))
+        provide(RepositorySet.set(backend, k, v))
       }
     }
   }

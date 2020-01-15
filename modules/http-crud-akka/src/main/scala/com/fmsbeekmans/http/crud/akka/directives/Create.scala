@@ -13,11 +13,11 @@ trait Create {
       V,
       F[_]
   ](
-      repository: Store[Backend, K, V, F],
+      backend: Backend,
       value: V
+  )(
+      implicit RepositoryStore: RepositoryStore[Backend, K, V, F]
   ): Directive1[F[K]] = {
-    provide(value).flatMap { v =>
-      provide(repository.store(value))
-    }
+    provide(RepositoryStore.store(backend, value))
   }
 }

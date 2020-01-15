@@ -13,11 +13,13 @@ trait Delete {
       V,
       F[_]
   ](
-      repository: Remove[Backend, K, V, F],
+      backend: Backend,
       key: K
-  ): Directive1[F[Unit]] = {
+  )(
+      implicit RepositoryRemove: RepositoryRemove[Backend, K, V, F]
+  ): Directive1[F[Boolean]] = {
     provide(key).flatMap { k =>
-      provide(repository.remove(k))
+      provide(RepositoryRemove.remove(backend, k))
     }
   }
 }

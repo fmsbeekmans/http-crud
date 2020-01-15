@@ -8,7 +8,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class DatabaseRepository[Driver <: JdbcProfile](val driver: Driver) {
   def repository[V, Table <: driver.api.Table[V]](
-      db: driver.api.Database,
       table: driver.api.TableQuery[Table],
       toId: Table => Rep[Option[Int]]
   )(
@@ -17,7 +16,7 @@ case class DatabaseRepository[Driver <: JdbcProfile](val driver: Driver) {
     import driver.api._
 
     new Repository[Database, Int, V, Future] {
-      override def keys: Future[Seq[Int]] = {
+      override def keys(db: driver.api.Database): Future[Seq[Int]] = {
         db.run(
             table
               .map(toId)
@@ -26,28 +25,41 @@ case class DatabaseRepository[Driver <: JdbcProfile](val driver: Driver) {
           .map(_.flatten)
       }
 
-      override def get(id: Int): Future[Option[V]] = {
+      override def get(
+          db: driver.api.Database,
+          id: Int
+      ): Future[Option[V]] = {
         db.run(table.filter(table => toId(table) === id).result.headOption)
       }
-      override def remove(id: Int): Future[Unit] = {
+      override def remove(
+          db: driver.api.Database,
+          id: Int
+      ): Future[Boolean] = {
         db.run(
             table
               .filter(table => toId(table) === id)
               .delete
           )
-          .map(_ => ())
+          .map(_ > 0)
       }
 
-      override def set(id: Int, value: V): Future[Unit] = {
+      override def set(
+          db: driver.api.Database,
+          id: Int,
+          value: V
+      ): Future[Boolean] = {
         db.run(
             table
               .filter(table => toId(table) === id)
               .update(value)
           )
-          .map(_ => ())
+          .map(_ > 0)
       }
 
-      override def store(value: V): Future[Int] = {
+      override def store(
+          db: driver.api.Database,
+          value: V
+      ): Future[Int] = {
         db.run(
             (table returning table.map(toId)) += value
           )

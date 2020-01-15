@@ -2,10 +2,9 @@ package com.fmsbeekmans.http.crud.akka
 
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Directives.Slash./
-import akka.http.scaladsl.server.util.Tuple
-import akka.http.scaladsl.server.{PathMatcher, PathMatcher1, Route}
+import akka.http.scaladsl.server.PathMatcher1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import com.fmsbeekmans.http.crud.akka.directives.{
   Create,
@@ -14,21 +13,42 @@ import com.fmsbeekmans.http.crud.akka.directives.{
   Read,
   Update
 }
-import com.fmsbeekmans.http.crud.core.{Get, Keys, Remove, Set, Store}
+import com.fmsbeekmans.http.crud.core._
 
 import scala.util.{Failure, Success}
 
 object Routes {
+
+  def apply[
+      Backend,
+      K: FromRequestUnmarshaller: ToResponseMarshaller: PathMatcher1,
+      V: FromRequestUnmarshaller: ToResponseMarshaller,
+      F[_]
+  ](
+      repository: Backend
+  )(
+      implicit Repository: Repository[Backend, K, V, F],
+      KS: ToResponseMarshaller[Seq[K]],
+      F: ToFuture[F]
+  ): server.Route = {
+    create[Backend, K, V, F](repository) ~
+      read[Backend, K, V, F](repository) ~
+      update[Backend, K, V, F](repository) ~
+      delete[Backend, K, V, F](repository) ~
+      list[Backend, K, V, F](repository)
+  }
+
   def create[
       Backend,
-      K: ToResponseMarshaller,
+      K: FromRequestUnmarshaller: ToResponseMarshaller,
       V: FromRequestUnmarshaller,
       F[_]
   ](
-      repository: Store[Backend, K, V, F]
+      repository: Backend
   )(
-      implicit F: ToFuture[F]
-  ): Route = {
+      implicit RepositoryStore: RepositoryStore[Backend, K, V, F],
+      F: ToFuture[F]
+  ): server.Route = {
     post
       .tflatMap(_ => entity(as[V]))
       .flatMap(Create.create(repository, _))
@@ -42,18 +62,20 @@ object Routes {
 
   def read[
       Backend,
-      K: PathMatcher1: Tuple,
+      K: FromRequestUnmarshaller,
       V: ToResponseMarshaller,
       F[_]
   ](
-      repository: Get[Backend, K, V, F]
+      repository: Backend
   )(
-      implicit K: PathMatcher[K],
+      implicit RepositoryGet: RepositoryGet[Backend, K, V, F],
+      KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
-  ): Route = {
+  ): server.Route = {
+
     get
-      .tflatMap(_ => path(K))
-      .tflatMap(Read.read(repository, _))
+      .tflatMap(_ => path(KeyPathMatcher))
+      .flatMap(Read.read(repository, _))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {
@@ -65,68 +87,75 @@ object Routes {
 
   def update[
       Backend,
-      K: PathMatcher1: Tuple,
+      K: FromRequestUnmarshaller,
       V: FromRequestUnmarshaller,
       F[_]
   ](
-      repository: Set[Backend, K, V, F]
+      repository: Backend
   )(
-      implicit K: PathMatcher[K],
+      implicit RepositorySet: RepositorySet[Backend, K, V, F],
+      KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
-  ): Route = {
+  ): server.Route = {
     put
       .tflatMap { _ =>
-        path(K).tflatMap { key =>
-          entity(as[V]).flatMap(Update.update(repository, key, _))
-        }
+        path(KeyPathMatcher)
+          .flatMap { key =>
+            entity(as[V]).flatMap(Update.update(repository, key, _))
+          }
       }
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {
-        case Success(_)  => complete(StatusCodes.OK)
-        case Failure(ex) => failWith(ex)
+        case Success(true)  => complete(StatusCodes.OK)
+        case Success(false) => complete(StatusCodes.NotFound)
+        case Failure(ex)    => failWith(ex)
       }
   }
 
   def delete[
       Backend,
-      K: PathMatcher1,
+      K: FromRequestUnmarshaller,
       V,
       F[_]
   ](
-      repository: Remove[Backend, K, V, F]
+      repository: Backend
   )(
-      implicit K: PathMatcher[K],
+      implicit RepositoryRemove: RepositoryRemove[Backend, K, V, F],
+      KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
-  ): Route = {
-    path(K)
-      .tflatMap(Delete.delete(repository, _))
+  ): server.Route = {
+    path(KeyPathMatcher)
+      .flatMap(Delete.delete(repository, _))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {
-        case Success(_)  => complete(StatusCodes.OK)
-        case Failure(ex) => failWith(ex)
+        case Success(true)  => complete(StatusCodes.OK)
+        case Success(false) => complete(StatusCodes.NotFound)
+        case Failure(ex)    => failWith(ex)
       }
   }
 
   def list[
       Backend,
-      K: PathMatcher1,
-      V: ToResponseMarshaller,
+      K,
+      V,
       F[_]
   ](
-      repository: Keys[Backend, K, V, F]
+      repository: Backend
   )(
-      implicit F: ToFuture[F]
-  ): Route = {
+      implicit RepositoryKeys: RepositoryKeys[Backend, K, V, F],
+      KS: ToResponseMarshaller[Seq[K]],
+      F: ToFuture[F]
+  ): server.Route = {
     get
-      .tflatMap(_ => path(/))
+      .tflatMap(_ => pathEndOrSingleSlash)
       .tflatMap(_ => List.list(repository))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {
-        case Success(_)  => complete(StatusCodes.OK)
-        case Failure(ex) => failWith(ex)
+        case Success(keys) => complete(keys)
+        case Failure(ex)   => failWith(ex)
       }
   }
 }
