@@ -1,16 +1,29 @@
 lazy val root = (project in file("."))
   .settings(projectMetaData)
+  .settings(
+    name := "http-crud",
+    moduleName := "http-crud",
+    description := "http-crud helps you expose CRUD repositories as an API"
+  )
   .settings(scalaSettings)
   .aggregate(`akka-http`, core, slick)
 
 lazy val core = (project in file("modules/http-crud-core"))
-  .settings(moduleName := "http-crud-core")
+  .settings(
+    moduleName := "http-crud core",
+    name := "http-crud-core",
+    description := "The essential types for http-curd"
+  )
   .settings(projectMetaData)
   .settings(scalaSettings)
 
 lazy val `akka-http` = (project in file("modules/http-crud-akka"))
   .settings(projectMetaData)
-  .settings(moduleName := "http-crud-akka")
+  .settings(
+    moduleName := "http-crud akka",
+    name := "http-crud-akka",
+    description := "Adapter to expose a repository through akka-http"
+  )
   .settings(scalaSettings)
   .dependsOn(core)
   .withTestDependencies
@@ -18,7 +31,11 @@ lazy val `akka-http` = (project in file("modules/http-crud-akka"))
 
 lazy val slick = (project in file("modules/http-crud-slick"))
   .settings(projectMetaData)
-  .settings(moduleName := "http-crud-slick")
+  .settings(
+    moduleName := "http-crud slick",
+    name := "http-crud-core",
+    description := "Adapter to use slick tables as repository"
+  )
   .settings(scalaSettings)
   .dependsOn(core)
   .withTestDependencies
@@ -26,7 +43,20 @@ lazy val slick = (project in file("modules/http-crud-slick"))
 
 lazy val projectMetaData = Seq(
   name := "http-crud",
-  organization := "com.fmsbeekmans"
+  organization := "com.fmsbeekmans",
+  developers := List(
+    Developer(
+      "fmsbeekmans",
+      "Ferdy Moon Soo Beekmans",
+      "contact@fmsbeekmans.com",
+      url("https://fmsbeekmans.com")
+    )
+  ),
+  scmInfo := Some(ScmInfo(
+    browseUrl = url("https://github.com/fmsbeekmans/http-crud"),
+    connection = "scm:git:git://github.com/fmsbeekmans/crud-http.git",
+  )),
+  licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
 )
 
 lazy val scalaSettings = Seq(
