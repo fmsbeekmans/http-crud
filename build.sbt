@@ -7,7 +7,11 @@ lazy val root = (project in file("."))
   )
   .settings(scalaSettings)
   .aggregate(`akka-http`, core, slick)
+  .dependsOn(`akka-http`, core, slick)
+  .settings(docSettings)
+  .enablePlugins(MdocPlugin)
   .settings(noReleaseSettings)
+  .withDocsDependencies
 
 lazy val core = (project in file("modules/http-crud-core"))
   .settings(
@@ -150,4 +154,11 @@ lazy val noReleaseSettings = Seq(
   skip in publishLocal := true,
   publishArtifact := false,
   releaseProcess := Seq()
+)
+
+lazy val docSettings = Seq(
+  mdocVariables := Map(
+    "VERSION" -> version.value
+  ),
+  mdocOut := file(".")
 )

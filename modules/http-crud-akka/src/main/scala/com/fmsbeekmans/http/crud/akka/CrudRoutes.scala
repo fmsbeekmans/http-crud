@@ -6,18 +6,11 @@ import akka.http.scaladsl.server
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.PathMatcher1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import com.fmsbeekmans.http.crud.akka.directives.{
-  Create,
-  Delete,
-  List,
-  Read,
-  Update
-}
 import com.fmsbeekmans.http.crud.core._
 
 import scala.util.{Failure, Success}
 
-object Routes {
+object CrudRoutes {
 
   def apply[
       Backend,
@@ -46,12 +39,12 @@ object Routes {
   ](
       repository: Backend
   )(
-      implicit RepositoryStore: RepositoryStore[Backend, K, V, F],
+      implicit RStore: RStore[Backend, K, V, F],
       F: ToFuture[F]
   ): server.Route = {
     post
       .tflatMap(_ => entity(as[V]))
-      .flatMap(Create.create(repository, _))
+      .flatMap(CrudDirectives[Backend, K, V, F].create(repository, _))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {
@@ -68,14 +61,14 @@ object Routes {
   ](
       repository: Backend
   )(
-      implicit RepositoryGet: RepositoryGet[Backend, K, V, F],
+      implicit RGet: RGet[Backend, K, V, F],
       KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
   ): server.Route = {
 
     get
       .tflatMap(_ => path(KeyPathMatcher))
-      .flatMap(Read.read(repository, _))
+      .flatMap(CrudDirectives[Backend, K, V, F].read(repository, _))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {
@@ -93,7 +86,7 @@ object Routes {
   ](
       repository: Backend
   )(
-      implicit RepositorySet: RepositorySet[Backend, K, V, F],
+      implicit RSet: RSet[Backend, K, V, F],
       KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
   ): server.Route = {
@@ -101,7 +94,8 @@ object Routes {
       .tflatMap { _ =>
         path(KeyPathMatcher)
           .flatMap { key =>
-            entity(as[V]).flatMap(Update.update(repository, key, _))
+            entity(as[V]).flatMap(
+              CrudDirectives[Backend, K, V, F].update(repository, key, _))
           }
       }
       .map(F.toFuture)
@@ -121,12 +115,12 @@ object Routes {
   ](
       repository: Backend
   )(
-      implicit RepositoryRemove: RepositoryRemove[Backend, K, V, F],
+      implicit RRemove: RRemove[Backend, K, V, F],
       KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
   ): server.Route = {
     path(KeyPathMatcher)
-      .flatMap(Delete.delete(repository, _))
+      .flatMap(CrudDirectives[Backend, K, V, F].delete(repository, _))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {
@@ -144,13 +138,13 @@ object Routes {
   ](
       repository: Backend
   )(
-      implicit RepositoryKeys: RepositoryKeys[Backend, K, V, F],
+      implicit RKeys: RKeys[Backend, K, V, F],
       KS: ToResponseMarshaller[Seq[K]],
       F: ToFuture[F]
   ): server.Route = {
     get
       .tflatMap(_ => pathEndOrSingleSlash)
-      .tflatMap(_ => List.list(repository))
+      .tflatMap(_ => CrudDirectives[Backend, K, V, F].list(repository))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {

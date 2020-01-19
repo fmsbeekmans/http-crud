@@ -1,8 +1,7 @@
 package com.fmsbeekmans.http.crud.akka
 
-import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.fmsbeekmans.http.crud.akka.ToFuture._
 import com.fmsbeekmans.http.crud.core._
@@ -15,22 +14,20 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.collection.mutable
 
-class RouteTest
+class RoutesTest
     extends AnyFreeSpec
     with Matchers
     with ScalatestRouteTest
-    with Directives
     with FailFastCirceSupport {
 
   implicit val keyMatcher: NumberMatcher[Int] = IntNumber
 
   case class Person(name: String)
 
-  implicitly[ToResponseMarshaller[Int]]
-
   val people = mutable.ArrayBuffer[Person]()
 
-  val crudRoute = Routes[mutable.ArrayBuffer[Person], Int, Person, Id](people)
+  val crudRoute =
+    CrudRoutes[mutable.ArrayBuffer[Person], Int, Person, Id](people)
 
   "A Crud route" - {
     "Create" - {

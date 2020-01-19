@@ -7,8 +7,8 @@ import scala.collection.mutable
 trait BufferInstances {
   implicit def bufferStore[B <: mutable.Buffer[V], V, F[_]](
       implicit Pure: Pure[F]
-  ): RepositoryStore[B, Int, V, F] =
-    new RepositoryStore[B, Int, V, F] {
+  ): RStore[B, Int, V, F] =
+    new RStore[B, Int, V, F] {
       override def store(buffer: B, value: V): F[Int] = {
         val n = buffer.length
         buffer.append(value)
@@ -19,8 +19,8 @@ trait BufferInstances {
 
   implicit def bufferRemove[B <: mutable.Buffer[V], V, F[_]](
       implicit Pure: Pure[F]
-  ): RepositoryRemove[B, Int, V, F] =
-    new RepositoryRemove[B, Int, V, F] {
+  ): RRemove[B, Int, V, F] =
+    new RRemove[B, Int, V, F] {
       override def remove(buffer: B, key: Int): F[Boolean] = {
         if (buffer.isDefinedAt(key)) {
           buffer.remove(key)

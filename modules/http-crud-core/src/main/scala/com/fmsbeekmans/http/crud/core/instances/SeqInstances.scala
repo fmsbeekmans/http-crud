@@ -8,16 +8,16 @@ trait SeqInstances {
 
   implicit def seqKeys[S <: mutable.Seq[V], V, F[_]](
       implicit Pure: Pure[F]
-  ): RepositoryKeys[S, Int, V, F] =
-    new RepositoryKeys[S, Int, V, F] {
+  ): RKeys[S, Int, V, F] =
+    new RKeys[S, Int, V, F] {
       override def keys(seq: S): F[Seq[Int]] =
         Pure.pure(seq.indices)
     }
 
   implicit def seqGet[S <: mutable.Seq[V], V, F[_]](
       implicit Pure: Pure[F]
-  ): RepositoryGet[S, Int, V, F] =
-    new RepositoryGet[S, Int, V, F] {
+  ): RGet[S, Int, V, F] =
+    new RGet[S, Int, V, F] {
       override def get(seq: S, key: Int): F[Option[V]] =
         Pure.pure(
           seq
@@ -30,8 +30,8 @@ trait SeqInstances {
 
   implicit def seqSet[S <: mutable.Seq[V], V, F[_]](
       implicit Pure: Pure[F]
-  ): RepositorySet[S, Int, V, F] =
-    new RepositorySet[S, Int, V, F] {
+  ): RSet[S, Int, V, F] =
+    new RSet[S, Int, V, F] {
       override def set(seq: S, key: Int, value: V): F[Boolean] = {
         if (seq.isDefinedAt(key)) {
           seq.update(key, value)
