@@ -10,6 +10,7 @@ object Dependencies extends AutoPlugin {
     }
 
     val h2 = "1.4.200"
+    val http4s = "0.20.17"
     val scalatest = "3.1.0"
     val slick = "3.3.1"
   }
@@ -29,6 +30,12 @@ object Dependencies extends AutoPlugin {
 
   val h2 = Seq(
     "com.h2database" % "h2" % versions.h2
+  )
+
+  val http4s = Seq(
+    "org.http4s" %% "http4s-dsl" % versions.http4s,
+    "org.http4s" %% "http4s-blaze-server" % versions.http4s,
+    "org.http4s" %% "http4s-blaze-client" % versions.http4s
   )
 
   val scalatest = Seq(
@@ -66,6 +73,13 @@ object Dependencies extends AutoPlugin {
             libraryDependencies ++=
               akkaDependencies ++
                 circe.map(_ % "test")
+          )
+
+      def withHttp4sDependencies: Project =
+        project
+          .settings(
+            libraryDependencies ++=
+              http4s
           )
 
       def withSlickDependencies: Project =

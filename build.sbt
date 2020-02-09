@@ -34,6 +34,18 @@ lazy val `akka-http` = (project in file("modules/http-crud-akka"))
   .withTestDependencies
   .withAkkaDependencies
 
+lazy val http4s = (project in file("modules/http-crud-http4s"))
+  .settings(projectMetaData)
+  .settings(
+    moduleName := "http-crud http4s",
+    name := "http-crud-http4s",
+    description := "Adapter to expose a repository through http4s"
+  )
+  .settings(scalaSettings)
+  .dependsOn(core)
+  .withTestDependencies
+  .withHttp4sDependencies
+
 lazy val slick = (project in file("modules/http-crud-slick"))
   .settings(projectMetaData)
   .settings(
