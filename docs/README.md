@@ -37,23 +37,23 @@ A repository is a (connection to) a datastructure with crud capabilities create,
 In case not all the operations are supported each of these are separate typeclasses
 
 ```scala mdoc
-trait RGet[Backend, K, V, F[_]] {
+trait Get[Backend, K, V, F[_]] {
   def get(backend: Backend, key: K): F[Option[V]]
 }
 
-trait RStore[Backend, K, V, F[_]] {
+trait Store[Backend, K, V, F[_]] {
   def store(backend: Backend, value: V): F[K]
 }
 
-trait RSet[Backend, K, V, F[_]] {
-  def set(backend: Backend, key: K, value: V): F[Boolean]
+trait Put[Backend, K, V, F[_]] {
+  def put(backend: Backend, key: K, value: V): F[Boolean]
 }
 
-trait RRemove[Backend, K, V, F[_]] {
+trait Remove[Backend, K, V, F[_]] {
   def remove(backend: Backend, key: K): F[Boolean]
 }
 
-trait RKeys[Backend, K, V, F[_]] {
+trait Keys[Backend, K, V, F[_]] {
   def keys(backend: Backend): F[Seq[K]]
 }
 ```
@@ -62,9 +62,9 @@ The core package includes instances for mutable datastructures
 
 | type             | instances                                    | notes                                                                                   |
 |------------------|----------------------------------------------|-----------------------------------------------------------------------------------------|
-| `mutable.Seq`    | `RGet`, `RSet`, `RKeys`                      | Only implemented with `Int` as key                                                        |
-| `mutable.Buffer` | `RGet`, `RStore`, `RSet`, `RRemove`, `RKeys` | Only implemented with `Int` as key, `RGet`, `RSet` & `RKeys` inherited from `mutable.Seq` |
-| `mutable.Map`    | `RGet`, `RSet`, `RRemove`, `RKeys`           |                                                                                         |
+| `mutable.Seq`    | `Get`, `Put`, `Keys`                      | Only implemented with `Int` as key                                                        |
+| `mutable.Buffer` | `Get`, `Store`, `Put`, `Remove`, `Keys` | Only implemented with `Int` as key, `Get`, `Put` & `Keys` inherited from `mutable.Seq` |
+| `mutable.Map`    | `Get`, `Put`, `Remove`, `Keys`           |                                                                                         |
 
 
 

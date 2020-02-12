@@ -66,7 +66,7 @@ class H2RepositoryTest
     "can update an entry" in {
       whenReady {
         for {
-          _ <- repository.set(database, 1, Person(Some(1), "Test Value"))
+          _ <- repository.put(database, 1, Person(Some(1), "Test Value"))
           updated <- repository.get(database, 1)
         } yield updated
       } { result =>

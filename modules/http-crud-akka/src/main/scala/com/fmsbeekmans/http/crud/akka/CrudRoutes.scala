@@ -28,7 +28,7 @@ object CrudRoutes {
       read[Backend, K, V, F](repository) ~
       update[Backend, K, V, F](repository) ~
       delete[Backend, K, V, F](repository) ~
-      list[Backend, K, V, F](repository)
+      browse[Backend, K, V, F](repository)
   }
 
   def create[
@@ -39,7 +39,7 @@ object CrudRoutes {
   ](
       repository: Backend
   )(
-      implicit RStore: RStore[Backend, K, V, F],
+      implicit Store: Store[Backend, K, V, F],
       F: ToFuture[F]
   ): server.Route = {
     post
@@ -61,7 +61,7 @@ object CrudRoutes {
   ](
       repository: Backend
   )(
-      implicit RGet: RGet[Backend, K, V, F],
+      implicit Get: Get[Backend, K, V, F],
       KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
   ): server.Route = {
@@ -86,7 +86,7 @@ object CrudRoutes {
   ](
       repository: Backend
   )(
-      implicit RSet: RSet[Backend, K, V, F],
+      implicit Put: Put[Backend, K, V, F],
       KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
   ): server.Route = {
@@ -115,7 +115,7 @@ object CrudRoutes {
   ](
       repository: Backend
   )(
-      implicit RRemove: RRemove[Backend, K, V, F],
+      implicit Remove: Remove[Backend, K, V, F],
       KeyPathMatcher: PathMatcher1[K],
       F: ToFuture[F]
   ): server.Route = {
@@ -130,7 +130,7 @@ object CrudRoutes {
       }
   }
 
-  def list[
+  def browse[
       Backend,
       K,
       V,
@@ -138,13 +138,13 @@ object CrudRoutes {
   ](
       repository: Backend
   )(
-      implicit RKeys: RKeys[Backend, K, V, F],
+      implicit Keys: Keys[Backend, K, V, F],
       KS: ToResponseMarshaller[Seq[K]],
       F: ToFuture[F]
   ): server.Route = {
     get
       .tflatMap(_ => pathEndOrSingleSlash)
-      .tflatMap(_ => CrudDirectives[Backend, K, V, F].list(repository))
+      .tflatMap(_ => CrudDirectives[Backend, K, V, F].browse(repository))
       .map(F.toFuture)
       .flatMap(onComplete(_))
       .apply {

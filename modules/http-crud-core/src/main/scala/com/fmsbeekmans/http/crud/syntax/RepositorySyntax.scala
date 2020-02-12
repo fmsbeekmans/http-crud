@@ -6,7 +6,7 @@ trait RepositorySyntax {
   implicit class GetSyntax[Backend, K, V, F[_]](
       backend: Backend
   )(
-      implicit RepositoryGet: RGet[Backend, K, V, F]
+      implicit RepositoryGet: Get[Backend, K, V, F]
   ) {
     def get(key: K): F[Option[V]] = RepositoryGet.get(backend, key)
   }
@@ -14,7 +14,7 @@ trait RepositorySyntax {
   implicit class KeysSyntax[Backend, K, V, F[_]](
       backend: Backend
   )(
-      implicit RepositoryKeys: RKeys[Backend, K, V, F]
+      implicit RepositoryKeys: Keys[Backend, K, V, F]
   ) {
     def keys: F[Seq[K]] = RepositoryKeys.keys(backend)
   }
@@ -22,24 +22,24 @@ trait RepositorySyntax {
   implicit class RemoveSyntax[Backend, K, V, F[_]](
       backend: Backend
   )(
-      implicit RepositoryRemove: RRemove[Backend, K, V, F]
+      implicit RepositoryRemove: Remove[Backend, K, V, F]
   ) {
     def remove(key: K): F[Boolean] = RepositoryRemove.remove(backend, key)
   }
 
-  implicit class SetSyntax[Backend, K, V, F[_]](
+  implicit class PutSyntax[Backend, K, V, F[_]](
       backend: Backend
   )(
-      implicit RepositorySet: RSet[Backend, K, V, F]
+      implicit RepositoryPut: Put[Backend, K, V, F]
   ) {
-    def set(key: K, value: V): F[Boolean] =
-      RepositorySet.set(backend, key, value)
+    def put(key: K, value: V): F[Boolean] =
+      RepositoryPut.put(backend, key, value)
   }
 
   implicit class StoreSyntax[Backend, K, V, F[_]](
       backend: Backend
   )(
-      implicit RepositoryStore: RStore[Backend, K, V, F]
+      implicit RepositoryStore: Store[Backend, K, V, F]
   ) {
     def store(value: V): F[K] = RepositoryStore.store(backend, value)
   }

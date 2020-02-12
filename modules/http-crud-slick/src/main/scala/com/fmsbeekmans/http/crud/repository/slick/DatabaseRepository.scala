@@ -43,7 +43,7 @@ case class DatabaseRepository[Driver <: JdbcProfile](val driver: Driver) {
           .map(_ > 0)
       }
 
-      override def set(
+      override def put(
           db: driver.api.Database,
           id: Int,
           value: V

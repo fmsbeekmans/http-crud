@@ -9,7 +9,7 @@ trait CrudDirectives[Backend, K, V, F[_]] {
       backend: Backend,
       value: V
   )(
-      implicit RepositoryStore: RStore[Backend, K, V, F]
+      implicit RepositoryStore: Store[Backend, K, V, F]
   ): Directive1[F[K]] = {
     provide(RepositoryStore.store(backend, value))
   }
@@ -18,7 +18,7 @@ trait CrudDirectives[Backend, K, V, F[_]] {
       backend: Backend,
       key: K
   )(
-      implicit RepositoryGet: RGet[Backend, K, V, F],
+      implicit RepositoryGet: Get[Backend, K, V, F],
   ): Directive1[F[Option[V]]] = {
     provide(key).flatMap { k =>
       provide(RepositoryGet.get(backend, k))
@@ -30,11 +30,11 @@ trait CrudDirectives[Backend, K, V, F[_]] {
       key: K,
       value: V
   )(
-      implicit RepositorySet: RSet[Backend, K, V, F]
+      implicit RepositoryPut: Put[Backend, K, V, F]
   ): Directive1[F[Boolean]] = {
     provide(key).flatMap { k =>
       provide(value).flatMap { v =>
-        provide(RepositorySet.set(backend, k, v))
+        provide(RepositoryPut.put(backend, k, v))
       }
     }
   }
@@ -43,17 +43,17 @@ trait CrudDirectives[Backend, K, V, F[_]] {
       backend: Backend,
       key: K
   )(
-      implicit RepositoryRemove: RRemove[Backend, K, V, F]
+      implicit RepositoryRemove: Remove[Backend, K, V, F]
   ): Directive1[F[Boolean]] = {
     provide(key).flatMap { k =>
       provide(RepositoryRemove.remove(backend, k))
     }
   }
 
-  def list(
+  def browse(
       backend: Backend
   )(
-      implicit RepositoryKeys: RKeys[Backend, K, V, F]
+      implicit RepositoryKeys: Keys[Backend, K, V, F]
   ): Directive1[F[Seq[K]]] = {
     provide(RepositoryKeys.keys(backend))
   }

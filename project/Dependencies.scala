@@ -33,6 +33,7 @@ object Dependencies extends AutoPlugin {
   )
 
   val http4s = Seq(
+    "org.http4s" %% "http4s-circe" % versions.http4s,
     "org.http4s" %% "http4s-dsl" % versions.http4s,
     "org.http4s" %% "http4s-blaze-server" % versions.http4s,
     "org.http4s" %% "http4s-blaze-client" % versions.http4s
@@ -79,7 +80,7 @@ object Dependencies extends AutoPlugin {
         project
           .settings(
             libraryDependencies ++=
-              http4s
+              http4s ++ circe
           )
 
       def withSlickDependencies: Project =
