@@ -9,11 +9,12 @@ import com.fmsbeekmans.http.crud.core.instances.bufferInstances._
 import com.fmsbeekmans.http.crud.core.instances.seqInstances._
 import io.circe.generic.auto._
 import org.http4s.circe._
+import org.http4s.dsl.io._
+import org.http4s.implicits._
+import org.http4s.server.blaze._
+import org.http4s.{EntityEncoder, HttpRoutes, Request, Response}
 
 object App extends IOApp {
-  import org.http4s._
-  import org.http4s.implicits._
-  import org.http4s.server.blaze._
 
   import collection.mutable
 
@@ -30,22 +31,21 @@ object App extends IOApp {
     }
   }
 
-  implicit val personJson = jsonOf[IO, Person]
-  implicit val personEncoderJson = jsonEncoderOf[IO, Person]
   implicit val intJsonEncoder = jsonEncoderOf[IO, Int]
   implicit val intsJsonEncoder = jsonEncoderOf[IO, Seq[Int]]
+  implicit val personJson = jsonOf[IO, Person]
+  implicit val personEncoderJson = jsonEncoderOf[IO, Person]
+  implicit val maybePersonJsonEncoder = jsonEncoderOf[IO, Option[Person]]
   implicit val intJson = jsonOf[IO, Int]
 
   val crud =
     Crud[mutable.ArrayBuffer[Person], Int, Person, IO](people, "people")
 
   val extracedService = HttpRoutes.of[IO] {
-    case crud.Crud(resp) => resp
+    case crud.CrudResponseF(resp) => resp
   }
 
   type Opt[A] = OptionT[IO, A]
-
-//  val helloWorldService: HttpRoutes[IO] =
 
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]

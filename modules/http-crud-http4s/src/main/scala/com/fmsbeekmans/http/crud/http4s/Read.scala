@@ -1,6 +1,6 @@
 package com.fmsbeekmans.http.crud.http4s
 
-import cats.MonadError
+import cats.{Applicative, MonadError}
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import com.fmsbeekmans.http.crud.core.Get
@@ -36,11 +36,12 @@ case class Read[Backend, K, V, F[_]](
         OptionT(F.pure(None))
     }
 
-  def toResponse: Kleisli[Opt, Option[V], Response[F]] =
-    Kleisli[Opt, Option[V], Response[F]] { entity =>
-      OptionT(F.pure(Some(Response[F](Ok).withEntity[Option[V]](entity))))
-
+  def toResponse[G[_]: Applicative]: Kleisli[G, Option[V], Response[F]] =
+    Kleisli[G, Option[V], Response[F]] { entity =>
+      Response[F](Ok).withEntity[Option[V]](entity).pure[G]
     }
+
+  val route = read.andThen(toResponse[Opt])
 
   private object Key {
     def unapply(keyString: String): Option[K] = {
@@ -52,6 +53,18 @@ case class Read[Backend, K, V, F[_]](
     def unapply(req: Request[F]): Option[F[Option[V]]] = req match {
       case GET -> Root / `path` / Key(key) =>
         Some(repository.get(backend, key))
+      case _ => None
+    }
+  }
+
+  object ReadResponseF {
+    def unapply(req: Request[F]): Option[F[Response[F]]] = req match {
+      case GET -> Root / `path` / Key(key) =>
+        Some {
+          repository
+            .get(backend, key)
+            .flatMap(toResponse[F].run)
+        }
       case _ => None
     }
   }

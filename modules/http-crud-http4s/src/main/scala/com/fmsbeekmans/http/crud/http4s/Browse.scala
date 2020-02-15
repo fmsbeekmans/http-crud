@@ -56,4 +56,14 @@ case class Browse[Backend, K, V, F[_]](
       case _ => None
     }
   }
+
+  def unapply(req: Request[F]): Option[F[Response[F]]] = req match {
+    case GET -> Root / `path` =>
+      Some {
+        repository
+          .keys(backend)
+          .flatMap(toResponse[F].run)
+      }
+    case _ => None
+  }
 }

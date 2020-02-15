@@ -1,6 +1,6 @@
 package com.fmsbeekmans.http.crud.http4s
 
-import cats.MonadError
+import cats.{Applicative, MonadError}
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import com.fmsbeekmans.http.crud.core.Put
@@ -30,19 +30,20 @@ case class Update[Backend, K, V, F[_]](
 
   def update: Kleisli[Opt, Request[F], Boolean] =
     Kleisli[Opt, Request[F], Boolean] {
-      case UpdateResultF(updateResultF) =>
+      case UpdateF(updateResultF) =>
         OptionT(updateResultF.map(Option.apply))
       case _ =>
         OptionT(F.pure(None))
     }
 
-  val toResponse: Kleisli[Opt, Boolean, Response[F]] =
-    Kleisli[Opt, Boolean, Response[F]] {
-      case true  => OptionT(Ok().map(Option.apply))
-      case false => OptionT(NotFound().map(Option.apply))
+  def toResponse[G[_]: Applicative]: Kleisli[G, Boolean, Response[F]] =
+    Kleisli[G, Boolean, Response[F]] {
+      case true  => Response(Ok).pure[G]
+      case false => Response(NotFound).pure[G]
     }
 
-  val route: Kleisli[Opt, Request[F], Response[F]] = update.andThen(toResponse)
+  val route: Kleisli[Opt, Request[F], Response[F]] =
+    update.andThen(toResponse[Opt])
 
   private object Key {
     def unapply(keyString: String): Option[K] = {
@@ -50,7 +51,7 @@ case class Update[Backend, K, V, F[_]](
     }
   }
 
-  object UpdateResultF {
+  object UpdateF {
     def unapply(req: Request[F]): Option[F[Boolean]] = req match {
       case req @ PUT -> Root / `path` / Key(key) =>
         Some {
@@ -58,6 +59,20 @@ case class Update[Backend, K, V, F[_]](
             entity <- req.as[V]
             updated <- repository.put(backend, key, entity)
           } yield updated
+        }
+      case _ => None
+    }
+  }
+
+  object UpdateResponseF {
+    def unapply(req: Request[F]): Option[F[Response[F]]] = req match {
+      case req @ PUT -> Root / `path` / Key(key) =>
+        Some {
+          for {
+            entity <- req.as[V]
+            updated <- repository.put(backend, key, entity)
+            response <- toResponse[F].run(updated)
+          } yield response
         }
       case _ => None
     }
