@@ -9,6 +9,7 @@ object Dependencies extends AutoPlugin {
       val http = "10.1.11"
     }
 
+    val cats = "2.0.0"
     val h2 = "1.4.200"
     val http4s = "0.20.17"
     val scalatest = "3.1.0"
@@ -21,6 +22,10 @@ object Dependencies extends AutoPlugin {
     "com.typesafe.akka" %% "akka-actor" % versions.akka.core,
     "com.typesafe.akka" %% "akka-stream" % versions.akka.core,
     "com.typesafe.akka" %% "akka-stream-testkit" % versions.akka.core % "test"
+  )
+
+  val cats = Seq(
+    "org.typelevel" %% "cats-core" % versions.cats
   )
 
   val circe = Seq(
@@ -50,6 +55,14 @@ object Dependencies extends AutoPlugin {
 
   object autoImport {
     implicit final class DependenciesOps(val project: Project) extends AnyVal {
+
+      def withCatsDependencies: Project =
+        project
+          .settings(
+            libraryDependencies ++=
+              scalatest ++
+                cats
+          )
 
       def withDocsDependencies: Project =
         project

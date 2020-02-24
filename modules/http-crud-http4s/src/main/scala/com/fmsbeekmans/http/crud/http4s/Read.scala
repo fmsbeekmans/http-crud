@@ -19,7 +19,7 @@ case class Read[Backend, K, V, F[_]](
 )(
     implicit repository: Get[Backend, K, V, F],
     matchKey: QueryParamDecoder[K],
-    valueEncoder: EntityEncoder[F, Option[V]],
+    valueEncoder: EntityEncoder[F, V],
     F: MonadError[F, Throwable]
 ) {
   val dsl: Http4sDsl[F] = org.http4s.dsl.Http4sDsl[F]
@@ -37,8 +37,9 @@ case class Read[Backend, K, V, F[_]](
     }
 
   def toResponse[G[_]: Applicative]: Kleisli[G, Option[V], Response[F]] =
-    Kleisli[G, Option[V], Response[F]] { entity =>
-      Response[F](Ok).withEntity[Option[V]](entity).pure[G]
+    Kleisli[G, Option[V], Response[F]] {
+      case Some(entity) => Response[F](Ok).withEntity[V](entity).pure[G]
+      case None         => Response[F](NotFound).pure[G]
     }
 
   val route = read.andThen(toResponse[Opt])

@@ -60,6 +60,7 @@ case class Delete[Backend, K, V, F[_]](
           repository
             .remove(backend, key)
             .flatMap(toResponse[F].run)
+            .handleErrorWith(_ => InternalServerError())
         }
       case _ => None
     }
